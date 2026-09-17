@@ -1,0 +1,100 @@
+<section aria-labelledby="allocations-title">
+  <div class="page-heading">
+    <div><p class="eyebrow">Requests</p><h2 id="allocations-title">Allocations</h2><p>Reserve the best available equipment for an employee.</p></div>
+  </div>
+
+  <div class="two-column">
+    <div class="card form-card">
+      <h3>New request</h3>
+      <form #allocationForm="ngForm" (ngSubmit)="create()" novalidate>
+        @if (formError) { <p class="message error" role="alert">{{ formError }}</p> }
+        <div class="field">
+          <label for="employee-id">Employee ID</label>
+          <input id="employee-id" name="employeeId" [(ngModel)]="employeeId" required maxlength="100">
+        </div>
+        <fieldset>
+          <legend>Equipment policy</legend>
+          <p class="hint">Each row is one required item. Brand and minimum condition are optional.</p>
+          @for (slot of policy; track $index; let index = $index) {
+            <div class="policy-slot">
+              <strong>Item {{ index + 1 }}</strong>
+              <div class="field">
+                <label [for]="'slot-type-' + index">Type</label>
+                <select [id]="'slot-type-' + index" [name]="'slotType' + index" [(ngModel)]="slot.type" required>
+                  @for (type of types; track type) { <option [value]="type">{{ displayEnum(type) }}</option> }
+                </select>
+              </div>
+              <div class="field">
+                <label [for]="'minimum-' + index">Minimum condition</label>
+                <input [id]="'minimum-' + index" [name]="'minimum' + index" type="number" [(ngModel)]="slot.minimumCondition" min="0" max="1" step="0.01" placeholder="Any">
+              </div>
+              <div class="field">
+                <label [for]="'brand-' + index">Preferred brand</label>
+                <app-brand-combobox [inputId]="'brand-' + index" [name]="'brand' + index" [(ngModel)]="slot.preferredBrand" [options]="brands" [loading]="brandsLoading" placeholder="No preference" />
+              </div>
+              <label class="checkbox"><input type="checkbox" [name]="'recent' + index" [(ngModel)]="slot.preferRecent"> Prefer newer equipment</label>
+              <button type="button" class="secondary danger-text" (click)="removeSlot(index)" [disabled]="policy.length === 1" [attr.aria-label]="'Remove item ' + (index + 1)">Remove</button>
+            </div>
+          }
+          <button type="button" class="secondary" (click)="addSlot()">Add another item</button>
+        </fieldset>
+        <div class="form-actions">
+          <button class="primary" type="submit" [disabled]="allocationForm.invalid || saving">{{ saving ? 'Allocating…' : 'Create and allocate' }}</button>
+          @if (allocationForm.invalid) { <span class="button-help">Enter an employee ID and valid slot values.</span> }
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>Request detail</h3>
+      @if (detailLoading) {
+        <p class="status" role="status">Loading request…</p>
+      } @else if (!selected) {
+        <p class="status">Select a request to see its policy and equipment.</p>
+      } @else {
+        <div class="detail-header">
+          <div><span class="hint">Request #{{ selected.id }}</span><h4>{{ selected.employeeId }}</h4></div>
+          <span class="badge" [class]="'badge ' + selected.state.toLowerCase()">{{ displayEnum(selected.state) }}</span>
+        </div>
+        @if (selected.state === 'FAILED') { <p class="message error" role="alert"><strong>Allocation failed.</strong> {{ selected.failureReason }}</p> }
+        <h4>Policy</h4>
+        <ol class="detail-list">
+          @for (slot of selected.policy; track $index) {
+            <li>{{ displayEnum(slot.type) }} · minimum {{ slot.minimumCondition ?? 'any' }} · brand {{ slot.preferredBrand || 'any' }}{{ slot.preferRecent ? ' · newer preferred' : '' }}</li>
+          }
+        </ol>
+        <h4>Allocated equipment</h4>
+        @if (selected.allocatedEquipments.length === 0) { <p class="status compact">No equipment allocated.</p> }
+        @else {
+          <ul class="detail-list">
+            @for (item of selected.allocatedEquipments; track item.id) { <li><strong>{{ item.brand }} {{ item.model }}</strong><br><span class="hint">{{ displayEnum(item.type) }} · {{ item.conditionScore | percent:'1.0-0' }}</span></li> }
+          </ul>
+        }
+        @if (actionError) { <p class="message error" role="alert">{{ actionError }}</p> }
+        @if (selected.state === 'RESERVED') {
+          <div class="form-actions">
+            <button type="button" class="primary" (click)="act('confirm')" [disabled]="actionPending">Confirm assignment</button>
+            <button type="button" class="secondary" (click)="act('cancel')" [disabled]="actionPending">Cancel and release</button>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  <div class="card table-card" [attr.aria-busy]="loading">
+    <div class="card-title"><h3>All requests</h3><button type="button" class="secondary" (click)="load()" [disabled]="loading">Refresh</button></div>
+    @if (loading) { <p class="status" role="status">Loading requests…</p> }
+    @else if (listError) { <div class="message error" role="alert">{{ listError }} <button class="link-button" type="button" (click)="load()">Retry</button></div> }
+    @else if (allocations.length === 0) { <p class="status">No allocation requests yet.</p> }
+    @else {
+      <div class="table-scroll"><table>
+        <caption class="sr-only">Allocation requests</caption>
+        <thead><tr><th scope="col">Employee</th><th scope="col">State</th><th scope="col">Items</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+        <tbody>@for (allocation of allocations; track allocation.id) {
+          <tr><td>{{ allocation.employeeId }}</td><td><span class="badge" [class]="'badge ' + allocation.state.toLowerCase()">{{ displayEnum(allocation.state) }}</span></td><td>{{ allocation.itemCount }}</td><td class="align-right"><button type="button" class="secondary" (click)="view(allocation.id)">View</button></td></tr>
+        }</tbody>
+      </table></div>
+    }
+  </div>
+</section>
+

@@ -1,0 +1,64 @@
+<section aria-labelledby="inventory-title">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">Equipment</p>
+      <h2 id="inventory-title">Inventory</h2>
+      <p>Review stock and register newly purchased equipment.</p>
+    </div>
+    <button type="button" class="primary" (click)="openDialog($event)">
+      <span aria-hidden="true">＋</span> Register equipment
+    </button>
+  </div>
+
+  <div class="card filters" aria-label="Inventory filters">
+    <div class="field">
+      <label for="state-filter">State</label>
+      <select id="state-filter" [(ngModel)]="stateFilter" (ngModelChange)="load()">
+        <option value="">All states</option>
+        @for (state of states; track state) { <option [value]="state">{{ displayEnum(state) }}</option> }
+      </select>
+    </div>
+    <div class="field">
+      <label for="type-filter">Type</label>
+      <select id="type-filter" [(ngModel)]="typeFilter" (ngModelChange)="load()">
+        <option value="">All types</option>
+        @for (type of types; track type) { <option [value]="type">{{ displayEnum(type) }}</option> }
+      </select>
+    </div>
+  </div>
+
+  <div class="card table-card" [attr.aria-busy]="loading">
+    @if (listError) {
+      <div class="message error" role="alert">{{ listError }} <button class="link-button" type="button" (click)="load()">Retry</button></div>
+    } @else if (!loading && equipment.length === 0) {
+      <p class="status">No equipment matches these filters.</p>
+    } @else {
+      <div class="table-scroll">
+        <table>
+          <caption class="sr-only">Equipment inventory</caption>
+          <thead><tr><th scope="col">Type</th><th scope="col">Brand</th><th scope="col">Model</th><th scope="col">Condition</th><th scope="col">State</th></tr></thead>
+          @if (loading) {
+            <tbody>
+              <tr class="sr-only"><td [attr.colspan]="columnCount" role="status">Loading inventory…</td></tr>
+            </tbody>
+            <tbody appSkeletonRows [columns]="columnCount" [rows]="6"></tbody>
+          } @else {
+            <tbody>
+              @for (item of equipment; track item.id) {
+                <tr class="row-enter">
+                  <td>{{ displayEnum(item.type) }}</td>
+                  <td>{{ item.brand }}</td>
+                  <td>{{ item.model }}</td>
+                  <td>{{ item.conditionScore | percent:'1.0-0' }}</td>
+                  <td><span class="badge" [class]="'badge ' + item.state.toLowerCase()">{{ displayEnum(item.state) }}</span></td>
+                </tr>
+              }
+            </tbody>
+          }
+        </table>
+      </div>
+    }
+  </div>
+
+  <app-equipment-form-dialog (created)="onCreated()" />
+</section>
