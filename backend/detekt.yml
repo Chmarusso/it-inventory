@@ -1,0 +1,41 @@
+# Overrides on top of detekt's default ruleset (buildUponDefaultConfig = true).
+# Only rules that need tuning for this codebase are listed; everything else keeps its default.
+
+complexity:
+  LongParameterList:
+    # Entity and DTO constructors legitimately take one parameter per column/field.
+    ignoreAnnotated: ['Entity', 'Table']
+    functionThreshold: 8
+    constructorThreshold: 10
+
+style:
+  MagicNumber:
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreNumbers: ['-1', '0', '1', '2']
+    # Graph node arithmetic and array indices in the flow solver are not magic constants.
+    excludes: ['**/AllocationMatcher.kt', '**/test/**']
+  ReturnCount:
+    max: 3
+  MaxLineLength:
+    maxLineLength: 140
+  WildcardImport:
+    # jakarta.persistence.* and the Spring web annotations are conventionally star-imported.
+    excludeImports: ['jakarta.persistence.*', 'org.springframework.web.bind.annotation.*']
+
+performance:
+  SpreadOperator:
+    # runApplication<T>(*args) is the canonical Spring Boot Kotlin entry point.
+    excludes: ['**/InventoryApplication.kt']
+
+naming:
+  FunctionNaming:
+    # Spring Data derives queries from long descriptive repository method names, and Kotlin
+    # tests conventionally use backticked sentence names.
+    excludes: ['**/*Repository.kt', '**/test/**']
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+  SwallowedException:
+    active: true

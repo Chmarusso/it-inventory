@@ -1,0 +1,21 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+indent_style = space
+indent_size = 4
+# Matches the MaxLineLength set in backend/detekt.yml so the two tools agree.
+max_line_length = 140
+ktlint_standard_function-naming = disabled
+# jakarta.persistence.* and the Spring web annotations are conventionally star-imported.
+# Kept in sync with the WildcardImport excludeImports list in backend/detekt.yml.
+ij_kotlin_packages_to_use_import_on_demand=java.util.*,jakarta.persistence.*,org.springframework.web.bind.annotation.*
+
+[*.{ts,html,css,json,yml,yaml}]
+indent_style = space
+indent_size = 2
