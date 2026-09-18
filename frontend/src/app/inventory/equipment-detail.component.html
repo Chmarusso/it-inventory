@@ -1,0 +1,28 @@
+<section class="device-page narrow-page" aria-labelledby="device-detail-title">
+  <a class="back-link" routerLink="/inventory"><ng-icon name="heroArrowLeft" aria-hidden="true" /> Back to inventory</a>
+
+  @if (loading) {
+    <div class="card"><p class="status" role="status">Loading device…</p></div>
+  } @else if (loadError || !equipment) {
+    <div class="card empty-state"><p class="message error" role="alert">{{ loadError }}</p><a class="button secondary" routerLink="/inventory">Return to inventory</a></div>
+  } @else {
+    <div class="page-heading">
+      <div>
+        <p class="eyebrow">Device #{{ equipment.id }}</p>
+        <h2 id="device-detail-title">{{ equipment.brand }} {{ equipment.model }}</h2>
+        <p>Inventory record and current assignment status.</p>
+      </div>
+      <span class="badge" [class]="'badge ' + equipment.state.toLowerCase()">{{ displayEnum(equipment.state) }}</span>
+    </div>
+
+    <div class="card device-preview">
+      <div class="device-preview-icon" aria-hidden="true"><ng-icon name="heroComputerDesktop" /></div>
+      <dl class="detail-properties">
+        <div><dt><ng-icon name="heroCube" aria-hidden="true" /> Type</dt><dd>{{ displayEnum(equipment.type) }}</dd></div>
+        <div><dt><ng-icon name="heroTag" aria-hidden="true" /> Brand and model</dt><dd>{{ equipment.brand }} {{ equipment.model }}</dd></div>
+        <div><dt><ng-icon name="heroCheck" aria-hidden="true" /> Condition</dt><dd>{{ equipment.conditionScore | percent:'1.0-0' }}</dd></div>
+        <div><dt><ng-icon name="heroCalendarDays" aria-hidden="true" /> Purchase date</dt><dd>{{ equipment.purchaseDate }}</dd></div>
+      </dl>
+    </div>
+  }
+</section>

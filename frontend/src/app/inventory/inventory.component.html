@@ -6,7 +6,7 @@
       <p>Review stock and register newly purchased equipment.</p>
     </div>
     <button type="button" class="primary" (click)="openDialog($event)">
-      <span aria-hidden="true">＋</span> Register equipment
+      <ng-icon name="heroPlus" aria-hidden="true" /> Register equipment
     </button>
   </div>
 
@@ -36,7 +36,7 @@
       <div class="table-scroll">
         <table>
           <caption class="sr-only">Equipment inventory</caption>
-          <thead><tr><th scope="col">Type</th><th scope="col">Brand</th><th scope="col">Model</th><th scope="col">Condition</th><th scope="col">State</th></tr></thead>
+          <thead><tr><th scope="col">Type</th><th scope="col">Brand</th><th scope="col">Model</th><th scope="col">Condition</th><th scope="col">State</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
           @if (loading) {
             <tbody>
               <tr class="sr-only"><td [attr.colspan]="columnCount" role="status">Loading inventory…</td></tr>
@@ -51,6 +51,7 @@
                   <td>{{ item.model }}</td>
                   <td>{{ item.conditionScore | percent:'1.0-0' }}</td>
                   <td><span class="badge" [class]="'badge ' + item.state.toLowerCase()">{{ displayEnum(item.state) }}</span></td>
+                  <td class="align-right"><a class="icon-button" [routerLink]="['/inventory', item.id]" [attr.aria-label]="'Preview ' + item.brand + ' ' + item.model"><ng-icon name="heroEye" aria-hidden="true" /></a></td>
                 </tr>
               }
             </tbody>

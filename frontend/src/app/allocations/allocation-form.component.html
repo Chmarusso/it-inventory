@@ -1,0 +1,58 @@
+<section class="narrow-page" aria-labelledby="new-allocation-title">
+  <a class="back-link" routerLink="/allocations"><ng-icon name="heroArrowLeft" aria-hidden="true" /> Back to allocations</a>
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">Allocations</p>
+      <h2 id="new-allocation-title">New request</h2>
+      <p>Choose the equipment policy and reserve the best available match.</p>
+    </div>
+  </div>
+
+  <div class="card form-card">
+    <form #allocationForm="ngForm" (ngSubmit)="create()" novalidate>
+      @if (formError) { <p class="message error" role="alert">{{ formError }}</p> }
+      <div class="field employee-field">
+        <label for="employee-id">Employee ID</label>
+        <input id="employee-id" name="employeeId" [(ngModel)]="employeeId" required maxlength="100" autocomplete="off">
+      </div>
+
+      <fieldset>
+        <legend>Equipment policy</legend>
+        <p class="hint">Add one item for each device the employee needs. Brand and minimum condition are optional.</p>
+        @for (slot of policy; track $index; let index = $index) {
+          <div class="policy-slot">
+            <div class="policy-slot-header">
+              <strong>Item {{ index + 1 }}</strong>
+              <button type="button" class="icon-button danger-icon" (click)="removeSlot(index)" [disabled]="policy.length === 1" [attr.aria-label]="'Remove item ' + (index + 1)">
+                <ng-icon name="heroTrash" aria-hidden="true" />
+              </button>
+            </div>
+            <div class="policy-fields">
+              <div class="field">
+                <label [for]="'slot-type-' + index">Type</label>
+                <select [id]="'slot-type-' + index" [name]="'slotType' + index" [(ngModel)]="slot.type" required>
+                  @for (type of types; track type) { <option [value]="type">{{ displayEnum(type) }}</option> }
+                </select>
+              </div>
+              <div class="field">
+                <label [for]="'minimum-' + index">Minimum condition <span class="hint">0.0–1.0</span></label>
+                <input [id]="'minimum-' + index" [name]="'minimum' + index" type="number" [(ngModel)]="slot.minimumCondition" min="0" max="1" step="0.01" placeholder="Any">
+              </div>
+              <div class="field">
+                <label [for]="'brand-' + index">Preferred brand</label>
+                <app-brand-combobox [inputId]="'brand-' + index" [name]="'brand' + index" [(ngModel)]="slot.preferredBrand" [options]="brands" [loading]="brandsLoading" placeholder="No preference" />
+              </div>
+            </div>
+            <label class="checkbox preference-row"><input type="checkbox" [name]="'recent' + index" [(ngModel)]="slot.preferRecent"> Prefer newer equipment</label>
+          </div>
+        }
+        <button type="button" class="secondary" (click)="addSlot()"><ng-icon name="heroPlus" aria-hidden="true" /> Add another item</button>
+      </fieldset>
+      <div class="form-actions">
+        <button class="primary" type="submit" [disabled]="allocationForm.invalid || saving"><ng-icon name="heroCheck" aria-hidden="true" /> {{ saving ? 'Allocating…' : 'Create and allocate' }}</button>
+        <a class="button secondary" routerLink="/allocations">Cancel</a>
+        @if (allocationForm.invalid) { <span class="button-help">Enter an employee ID and valid slot values.</span> }
+      </div>
+    </form>
+  </div>
+</section>

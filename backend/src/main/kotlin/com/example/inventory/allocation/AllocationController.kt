@@ -32,4 +32,10 @@ class AllocationController(
     fun cancel(
         @PathVariable id: Long,
     ) = service.cancel(id)
+
+    @PostMapping("/{id}/items/{equipmentId}/return")
+    fun returnEquipment(
+        @PathVariable id: Long,
+        @PathVariable equipmentId: Long,
+    ) = service.returnEquipment(id, equipmentId)
 }

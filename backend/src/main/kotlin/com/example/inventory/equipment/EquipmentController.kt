@@ -3,6 +3,7 @@ package com.example.inventory.equipment
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/equipments")
@@ -28,6 +29,13 @@ class EquipmentController(
     /** Distinct brands already present in stock, used to populate the brand picker. */
     @GetMapping("/brands")
     fun brands(): List<String> = repository.findDistinctBrands()
+
+    @GetMapping("/{id}")
+    fun get(@PathVariable id: Long): EquipmentResponse =
+        repository
+            .findById(id)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Equipment not found") }
+            .toResponse()
 
     @GetMapping
     fun list(

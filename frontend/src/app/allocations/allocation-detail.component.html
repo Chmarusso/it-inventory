@@ -1,0 +1,73 @@
+<section class="narrow-page" aria-labelledby="allocation-detail-title">
+  <a class="back-link" routerLink="/allocations"><ng-icon name="heroArrowLeft" aria-hidden="true" /> Back to allocations</a>
+
+  @if (loading) {
+    <div class="card"><p class="status" role="status">Loading request…</p></div>
+  } @else if (loadError || !allocation) {
+    <div class="card empty-state"><p class="message error" role="alert">{{ loadError }}</p><a class="button secondary" routerLink="/allocations">Return to allocations</a></div>
+  } @else {
+    <div class="page-heading">
+      <div>
+        <p class="eyebrow">Allocation #{{ allocation.id }}</p>
+        <h2 id="allocation-detail-title">{{ allocation.employeeId }}</h2>
+        <p>Equipment request and assigned device details.</p>
+      </div>
+      <span class="badge" [class]="'badge ' + allocation.state.toLowerCase()">{{ displayEnum(allocation.state) }}</span>
+    </div>
+
+    @if (allocation.state === 'FAILED') {
+      <p class="message error" role="alert"><strong>Allocation failed.</strong> {{ allocation.failureReason }}</p>
+    }
+
+    <div class="detail-grid">
+      <div class="card">
+        <h3>Requested policy</h3>
+        <ol class="detail-list policy-detail-list">
+          @for (slot of allocation.policy; track $index) {
+            <li>
+              <strong>{{ displayEnum(slot.type) }}</strong>
+              <span class="hint">Minimum {{ slot.minimumCondition ?? 'any' }} · Brand {{ slot.preferredBrand || 'any' }}</span>
+              @if (slot.preferRecent) { <span class="preference-note">Prefer newer equipment</span> }
+            </li>
+          }
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>Assigned devices</h3>
+        @if (allocation.allocatedEquipments.length === 0) {
+          <p class="status compact">No equipment assigned to this request.</p>
+        } @else {
+          <ul class="device-list">
+            @for (item of allocation.allocatedEquipments; track item.id) {
+              <li>
+                <div>
+                  <strong>{{ item.brand }} {{ item.model }}</strong>
+                  <span class="hint">{{ displayEnum(item.type) }} · {{ item.conditionScore | percent:'1.0-0' }} condition</span>
+                </div>
+                <div class="device-actions">
+                  @if (allocation.state === 'CONFIRMED' && item.state === 'ASSIGNED') {
+                    <button type="button" class="secondary compact-button" (click)="returnEquipment(item.id)" [disabled]="returnPendingId !== null">
+                      <ng-icon name="heroArrowUturnLeft" aria-hidden="true" /> {{ returnPendingId === item.id ? 'Returning…' : 'Return device' }}
+                    </button>
+                  } @else if (item.state === 'AVAILABLE') {
+                    <span class="badge available">Returned</span>
+                  }
+                  <a class="icon-button" [routerLink]="['/inventory', item.id]" [attr.aria-label]="'Preview ' + item.brand + ' ' + item.model"><ng-icon name="heroEye" aria-hidden="true" /></a>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+
+    @if (actionError) { <p class="message error" role="alert">{{ actionError }}</p> }
+    @if (allocation.state === 'RESERVED') {
+      <div class="form-actions detail-actions">
+        <button type="button" class="primary" (click)="act('confirm')" [disabled]="actionPending"><ng-icon name="heroCheck" aria-hidden="true" /> Confirm assignment</button>
+        <button type="button" class="secondary" (click)="act('cancel')" [disabled]="actionPending"><ng-icon name="heroXMark" aria-hidden="true" /> Cancel and release</button>
+      </div>
+    }
+  }
+</section>

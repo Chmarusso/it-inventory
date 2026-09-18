@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { NgIcon } from '@ng-icons/core';
 import { InventoryApiService } from '../inventory-api.service';
 import { BrandComboboxComponent } from '../shared/brand-combobox.component';
 import { ApiError, CreateEquipment, displayEnum, equipmentTypes } from '../models';
@@ -24,7 +25,7 @@ import { ApiError, CreateEquipment, displayEnum, equipmentTypes } from '../model
 @Component({
   selector: 'app-equipment-form-dialog',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, BrandComboboxComponent],
+  imports: [FormsModule, NgIcon, BrandComboboxComponent],
   template: `
     <!-- The click handler only implements click-outside-to-dismiss on the backdrop. Its
          keyboard equivalent is Escape, which <dialog> handles natively and surfaces here as
@@ -38,7 +39,7 @@ import { ApiError, CreateEquipment, displayEnum, equipmentTypes } from '../model
             <h3 id="equipment-dialog-title">Register equipment</h3>
           </div>
           <button type="button" class="icon-button" aria-label="Close dialog" (click)="close()">
-            <span aria-hidden="true">✕</span>
+            <ng-icon name="heroXMark" aria-hidden="true" />
           </button>
         </header>
 
@@ -79,7 +80,7 @@ import { ApiError, CreateEquipment, displayEnum, equipmentTypes } from '../model
             </div>
 
             <div class="field">
-              <label for="condition">Condition <span class="hint">0–1</span></label>
+              <label for="condition">Condition <span class="hint">0.0–1.0</span></label>
               <input id="condition" name="conditionScore" type="number" [(ngModel)]="draft.conditionScore" required min="0" max="1" step="0.01" [attr.aria-invalid]="!!fieldErrors()['conditionScore']" [attr.aria-describedby]="fieldErrors()['conditionScore'] ? 'condition-error' : null">
               @if (fieldErrors()['conditionScore']) { <small id="condition-error" class="field-error">{{ fieldErrors()['conditionScore'] }}</small> }
             </div>

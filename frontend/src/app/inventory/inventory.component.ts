@@ -1,6 +1,8 @@
 import { ChangeDetectorRef, Component, effect, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PercentPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { NgIcon } from '@ng-icons/core';
 import { InventoryApiService } from '../inventory-api.service';
 import { InventoryRefreshService } from '../inventory-refresh.service';
 import { EquipmentFormDialogComponent } from './equipment-form-dialog.component';
@@ -16,7 +18,7 @@ import {
 
 @Component({
   selector: 'app-inventory',
-  imports: [FormsModule, PercentPipe, EquipmentFormDialogComponent, SkeletonRowsComponent],
+  imports: [FormsModule, PercentPipe, RouterLink, NgIcon, EquipmentFormDialogComponent, SkeletonRowsComponent],
   templateUrl: './inventory.component.html',
 })
 export class InventoryComponent {
@@ -30,7 +32,7 @@ export class InventoryComponent {
   readonly displayEnum = displayEnum;
 
   /** Kept in sync with the table header so skeleton rows never shift the layout. */
-  readonly columnCount = 5;
+  readonly columnCount = 6;
 
   equipment: Equipment[] = [];
   stateFilter: EquipmentState | '' = '';

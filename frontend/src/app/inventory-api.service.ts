@@ -23,6 +23,10 @@ export class InventoryApiService {
     return this.http.get<Equipment[]>(`${this.baseUrl}/equipments`, { params });
   }
 
+  getEquipmentById(id: number): Observable<Equipment> {
+    return this.http.get<Equipment>(`${this.baseUrl}/equipments/${id}`);
+  }
+
   getBrands(): Observable<string[]> {
     return this.http.get<string[]>(`${this.baseUrl}/equipments/brands`);
   }
@@ -50,5 +54,8 @@ export class InventoryApiService {
   cancelAllocation(id: number): Observable<AllocationDetail> {
     return this.http.post<AllocationDetail>(`${this.baseUrl}/allocations/${id}/cancel`, {});
   }
-}
 
+  returnEquipment(allocationId: number, equipmentId: number): Observable<AllocationDetail> {
+    return this.http.post<AllocationDetail>(`${this.baseUrl}/allocations/${allocationId}/items/${equipmentId}/return`, {});
+  }
+}

@@ -73,6 +73,22 @@ class AllocationService(
     }
 
     @Transactional
+    fun returnEquipment(
+        allocationId: Long,
+        equipmentId: Long,
+    ): AllocationDetailResponse {
+        val allocation = findForUpdate(allocationId)
+        requireState(allocation, AllocationState.CONFIRMED, "return equipment from")
+        val item = allocation.items.firstOrNull { it.equipment.id == equipmentId }
+            ?: throw NotFoundException("Equipment $equipmentId is not part of allocation $allocationId")
+        if (item.equipment.state != EquipmentState.ASSIGNED) {
+            throw ConflictException("Equipment $equipmentId has already been returned")
+        }
+        item.equipment.state = EquipmentState.AVAILABLE
+        return allocation.toDetail()
+    }
+
+    @Transactional
     fun get(id: Long): AllocationDetailResponse = find(id).toDetail()
 
     @Transactional
