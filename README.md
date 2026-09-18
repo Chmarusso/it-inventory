@@ -36,6 +36,42 @@ The API uses uppercase enum values (`MAIN_COMPUTER`, `AVAILABLE`, and so on). Th
 
 ## Allocation algorithm
 
+### The short version
+
+An allocation request is a shopping list for one employee, such as “one laptop with condition
+at least 0.80, preferably Apple, plus two monitors.” The allocator chooses a **complete set of
+different available devices** for that list.
+
+```mermaid
+flowchart LR
+  R[Employee request] --> S[Policy slots]
+  S --> F[Remove devices that fail hard rules]
+  F --> C[Compare valid complete sets]
+  C --> A[Reserve the best set]
+  C --> X[No complete set]
+  X --> E[Explain the shortage]
+```
+
+In practice:
+
+1. Remove devices with the wrong type or a condition below the slot’s minimum.
+2. Compare the remaining combinations as one group, so one slot cannot steal the only valid
+   device from another slot.
+3. Prefer, in order: matching brand, newer purchase date, higher condition, then lower id.
+4. Reserve the winning set in one transaction, or store a clear failure reason if no complete
+   set exists.
+
+Choosing the whole set matters. With two monitor slots—one requiring condition ≥ 0.85 and one
+preferring LG—the allocator can give the 0.90 LG monitor to the strict slot and the 0.80 Dell
+monitor to the other slot. A one-at-a-time choice could make the request fail unnecessarily.
+
+Devices move through `AVAILABLE → RESERVED → ASSIGNED`. Cancelling a reservation releases all
+reserved devices; returning a confirmed allocation releases only the individual device that was
+returned. The allocation record remains as history.
+
+<details>
+<summary>Technical implementation details</summary>
+
 ### The problem
 
 A policy is a list of slots. Each slot names an equipment type, optionally a minimum
@@ -226,7 +262,9 @@ What the numbers say:
 
 The benchmark is a wall-clock harness, not JMH. It characterises the curve and catches regressions; microsecond precision would need JMH with blackholes and forked JVMs.
 
-Creation runs in one transaction and pessimistically locks all available equipment rows of the requested types before matching. The chosen items become `RESERVED` atomically, preventing concurrent requests from receiving the same item. Confirm changes them to `ASSIGNED`; cancel returns them to `AVAILABLE`. Allocation-item rows remain as history after either transition.
+Creation runs in one transaction and pessimistically locks all available equipment rows of the requested types before matching. The chosen items become `RESERVED` atomically, preventing concurrent requests from receiving the same item. Confirm changes them to `ASSIGNED`; cancel returns them to `AVAILABLE`; returning a confirmed device releases that device alone. Allocation-item rows remain as history after each transition.
+
+</details>
 
 ## REST API
 
@@ -234,11 +272,13 @@ Creation runs in one transaction and pessimistically locks all available equipme
 | --- | --- | --- |
 | `POST` | `/equipments` | Register equipment |
 | `GET` | `/equipments?state=&type=` | List and filter equipment |
+| `GET` | `/equipments/{id}` | Get one equipment record |
 | `POST` | `/allocations` | Create and immediately attempt an allocation |
 | `GET` | `/allocations` | List requests |
 | `GET` | `/allocations/{id}` | Get policy, state, and allocated items |
 | `POST` | `/allocations/{id}/confirm` | Assign reserved items |
 | `POST` | `/allocations/{id}/cancel` | Release reserved items |
+| `POST` | `/allocations/{id}/items/{equipmentId}/return` | Return one assigned device |
 
 Example request:
 
